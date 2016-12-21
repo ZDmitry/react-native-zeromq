@@ -1,2 +1,2 @@
 # react-native-zeromq
-Stub for ZeroMQ react native lib
+Stub for ZeroMQ client react native lib
