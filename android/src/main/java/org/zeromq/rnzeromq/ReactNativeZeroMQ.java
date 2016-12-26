@@ -10,21 +10,52 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReadableMap;
 
-// ZeroMQ imports ...
-
+import zmq.ZMQ;
+import zmq.Ctx;
+import zmq.SocketBase;
 
 class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
+
+    private Ctx        _zmqCtx = null;
+    private SocketBase _dealer = null;
 
     ReactNativeZeroMQ(final ReactApplicationContext reactContext) {
         super(reactContext);
     }
 
-    private Boolean _init(final String jsonConfig) throws Exception {
-        return true;
+    private Boolean _init(final ReadableMap config) throws Exception {
+        Boolean success;
+
+        if (_zmqCtx == null) {
+            _zmqCtx = ZMQ.init(1);
+            SocketBase dealer = ZMQ.socket(_zmqCtx, ZMQ.ZMQ_DEALER);
+            if (dealer != null) {
+                String devIdentifier = "android.os.Build." + ReactNativeUtils.getDeviceName() + " " + ReactNativeUtils.getIPAddress(true);
+                ZMQ.setSocketOption(dealer, ZMQ.ZMQ_IDENTITY, devIdentifier);
+                success = ZMQ.connect(dealer, config.getString("server"));
+                if (success) {
+                    _dealer = dealer;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private Boolean _destroy() throws Exception {
+        if (_dealer != null) {
+            ZMQ.close(_dealer);
+            _dealer = null;
+        }
+
+        if (_zmqCtx != null) {
+            ZMQ.term(_zmqCtx);
+            _zmqCtx = null;
+        }
+
         return true;
     }
 
@@ -35,7 +66,7 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
     @ReactMethod
     @SuppressWarnings("unused")
-    public void start(final String config, Callback callback) {
+    public void start(final ReadableMap config, Callback callback) {
         (new ReactTask(callback) {
             @Override
             Object run() throws Exception {
