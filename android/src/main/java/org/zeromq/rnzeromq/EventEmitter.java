@@ -2,6 +2,7 @@ package org.zeromq.rnzeromq;
 
 import android.util.Log;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
@@ -20,9 +21,12 @@ public class EventEmitter {
         this.context.addLifecycleEventListener(ReceiverHelper.getInstance(context));
     }
 
-    public void emit(String eventName, WritableMap message) {
+    public void emit(final String eventName, final String message) {
         if (context.hasActiveCatalystInstance() && this.context.hasCurrentActivity()) {
-            context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, message);
+            WritableMap retVal = Arguments.createMap();
+            retVal.putString("result", message);
+
+            context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, retVal);
         }
     }
 

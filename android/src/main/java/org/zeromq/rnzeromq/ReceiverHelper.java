@@ -9,6 +9,7 @@ import com.facebook.react.bridge.LifecycleEventListener;
 class ReceiverHelper implements LifecycleEventListener {
 
     private static ReceiverHelper instance = null;
+
     private Context context;
     private Intent  intent;
 

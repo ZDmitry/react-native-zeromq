@@ -1,5 +1,8 @@
 package org.zeromq.rnzeromq;
 
+import android.os.Handler;
+import android.os.Message;
+
 import java.util.HashMap;
 import java.lang.String;
 import java.lang.Boolean;
@@ -12,51 +15,39 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReadableMap;
 
-import zmq.ZMQ;
-import zmq.Ctx;
-import zmq.SocketBase;
+import android.os.AsyncTask;
+
 
 class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
-    private Ctx        _zmqCtx = null;
-    private SocketBase _dealer = null;
+    private String serverAddress = "";
+    private Thread zeroMQThread;
 
     ReactNativeZeroMQ(final ReactApplicationContext reactContext) {
         super(reactContext);
     }
 
-    private Boolean _init(final ReadableMap config) throws Exception {
-        Boolean success;
-
-        if (_zmqCtx == null) {
-            _zmqCtx = ZMQ.init(1);
-            SocketBase dealer = ZMQ.socket(_zmqCtx, ZMQ.ZMQ_DEALER);
-            if (dealer != null) {
-                String devIdentifier = "android.os.Build." + ReactNativeUtils.getDeviceName() + " " + ReactNativeUtils.getIPAddress(true);
-                ZMQ.setSocketOption(dealer, ZMQ.ZMQ_IDENTITY, devIdentifier);
-                success = ZMQ.connect(dealer, config.getString("server"));
-                if (success) {
-                    _dealer = dealer;
-                    return true;
-                }
-            }
+    private Boolean _init(final ReadableMap config) {
+        if (zeroMQThread == null) {
+            serverAddress = config.getString("server");
+            zeroMQThread  = new Thread(new ZeroMQServer(serverAddress));
+            zeroMQThread.start();
+            return true;
         }
-
         return false;
     }
 
-    private Boolean _destroy() throws Exception {
-        if (_dealer != null) {
-            ZMQ.close(_dealer);
-            _dealer = null;
-        }
+    private String _getDeviceIdentifier() {
+        return ("android.os.Build." + ReactNativeUtils.getDeviceName() + " " + ReactNativeUtils.getIPAddress(true));
+    }
 
-        if (_zmqCtx != null) {
-            ZMQ.term(_zmqCtx);
-            _zmqCtx = null;
+    private Boolean _disconnect() throws Exception {
+        if (zeroMQThread != null) {
+            zeroMQThread.interrupt();
+            zeroMQThread = null;
+            return true;
         }
-
-        return true;
+        return false;
     }
 
     @Override
@@ -66,26 +57,54 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
     @ReactMethod
     @SuppressWarnings("unused")
-    public void start(final ReadableMap config, Callback callback) {
+    public void connect(final ReadableMap config, final Callback callback) {
         (new ReactTask(callback) {
             @Override
             Object run() throws Exception {
-                ReactNativeZeroMQ.this._init(config);
-                return this._successResult(true);
+                Boolean success = ReactNativeZeroMQ.this._init(config);
+                return this._successResult(success);
             }
         }).start();
     }
 
     @ReactMethod
     @SuppressWarnings("unused")
-    public void destroy(Callback callback) {
+    public void sendMessage(final String message, final Callback callback) {
+        if (serverAddress.length() > 0) {
+            new ZeroMQTask(serverAddress, new Handler() {
+                @Override
+                public void handleMessage(final Message msg) {
+                    (new ReactTask(callback) {
+                        @Override
+                        Object run() throws Exception {
+                            return msg.obj;
+                        }
+                    }).start();
+                }
+            }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+        }
+    }
+
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void disconnect(final Callback callback) {
         (new ReactTask(callback) {
             @Override
             Object run() throws Exception {
-                Boolean success = ReactNativeZeroMQ.this._destroy();
+                Boolean success = ReactNativeZeroMQ.this._disconnect();
                 return this._successResult(success);
             }
         }).start();
     }
 
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void getDeviceIdentifier(final Callback callback) {
+        (new ReactTask(callback) {
+            @Override
+            Object run() throws Exception {
+                return ReactNativeZeroMQ.this._getDeviceIdentifier();
+            }
+        }).start();
+    }
 }
