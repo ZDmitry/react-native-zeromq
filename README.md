@@ -34,7 +34,7 @@ in `MainApplication.java`
 add package to getPacakges()
 
 ```java
-import com.zeromq.rnzeromq.ReactNativeRedisPackage;
+import org.zeromq.rnzeromq.ReactNativeRedisPackage;
 
 // ...
 

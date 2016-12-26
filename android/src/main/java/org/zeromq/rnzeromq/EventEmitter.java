@@ -1,4 +1,4 @@
-package com.zeromq.rnzeromq;
+package org.zeromq.rnzeromq;
 
 import android.util.Log;
 

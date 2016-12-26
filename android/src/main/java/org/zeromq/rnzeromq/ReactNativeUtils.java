@@ -1,4 +1,4 @@
-package com.zeromq.rnzeromq;
+package org.zeromq.rnzeromq;
 
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;

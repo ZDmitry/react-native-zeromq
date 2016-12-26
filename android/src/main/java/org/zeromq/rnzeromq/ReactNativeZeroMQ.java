@@ -1,4 +1,4 @@
-package com.zeromq.rnzeromq;
+package org.zeromq.rnzeromq;
 
 import java.util.HashMap;
 import java.lang.String;
