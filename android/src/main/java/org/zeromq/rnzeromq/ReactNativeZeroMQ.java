@@ -1,53 +1,28 @@
 package org.zeromq.rnzeromq;
 
-import android.os.Handler;
-import android.os.Message;
-
+import java.util.UUID;
 import java.util.HashMap;
 import java.lang.String;
 import java.lang.Boolean;
-import java.util.Iterator;
 import java.util.Map;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.ReadableMap;
 
-import android.os.AsyncTask;
+import org.zeromq.ZMQ;
 
 
 class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
-    private String serverAddress = "";
-    private Thread zeroMQThread;
+    private Map<String, Object> objectStorage;
+    private final ZMQ.Context   zmqContext;
 
     ReactNativeZeroMQ(final ReactApplicationContext reactContext) {
         super(reactContext);
-    }
-
-    private Boolean _init(final ReadableMap config) {
-        if (zeroMQThread == null) {
-            serverAddress = config.getString("server");
-            zeroMQThread  = new Thread(new ZeroMQServer(serverAddress));
-            zeroMQThread.start();
-            return true;
-        }
-        return false;
-    }
-
-    private String _getDeviceIdentifier() {
-        return ("android.os.Build." + ReactNativeUtils.getDeviceName() + " " + ReactNativeUtils.getIPAddress(true));
-    }
-
-    private Boolean _disconnect() throws Exception {
-        if (zeroMQThread != null) {
-            zeroMQThread.interrupt();
-            zeroMQThread = null;
-            return true;
-        }
-        return false;
+        zmqContext    = ZMQ.context(1);
+        objectStorage = new HashMap<>();
     }
 
     @Override
@@ -55,46 +30,173 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
         return "ReactNativeZeroMQAndroid";
     }
 
-    @ReactMethod
-    @SuppressWarnings("unused")
-    public void connect(final ReadableMap config, final Callback callback) {
-        (new ReactTask(callback) {
-            @Override
-            Object run() throws Exception {
-                Boolean success = ReactNativeZeroMQ.this._init(config);
-                return this._successResult(success);
-            }
-        }).start();
+    @Override
+    public Map<String, Object> getConstants() {
+        final Map<String, Object> constants = new HashMap<>();
+
+        constants.put("ZMQ_REP",  ZMQ.REP);
+        constants.put("ZMQ_REQ",  ZMQ.REQ);
+        constants.put("ZMQ_XREP", ZMQ.XREP);
+        constants.put("ZMQ_XREQ", ZMQ.XREQ);
+
+        constants.put("ZMQ_PUB",  ZMQ.PUB);
+        constants.put("ZMQ_SUB",  ZMQ.SUB);
+        constants.put("ZMQ_XPUB", ZMQ.XPUB);
+        constants.put("ZMQ_XSUB", ZMQ.XSUB);
+
+        constants.put("ZMQ_CHARSET",  ZMQ.CHARSET);
+        constants.put("ZMQ_DONTWAIT", ZMQ.DONTWAIT);
+        constants.put("ZMQ_SNDMORE",  ZMQ.SNDMORE);
+
+        constants.put("ZMQ_DEALER", ZMQ.DEALER);
+        constants.put("ZMQ_ROUTER", ZMQ.ROUTER);
+
+        // @TODO: add socket options constants
+
+        return constants;
     }
 
-    @ReactMethod
-    @SuppressWarnings("unused")
-    public void sendMessage(final String message, final Callback callback) {
-        if (serverAddress.length() > 0) {
-            new ZeroMQTask(serverAddress, new Handler() {
-                @Override
-                public void handleMessage(final Message msg) {
-                    (new ReactTask(callback) {
-                        @Override
-                        Object run() throws Exception {
-                            return msg.obj;
-                        }
-                    }).start();
-                }
-            }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+    private String _newObject(Object obj) {
+        UUID uuid = UUID.randomUUID();
+        objectStorage.put(uuid.toString(), obj);
+        return uuid.toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T _getObject(final String uuid) {
+        if (!objectStorage.containsKey(uuid)) {
+            throw new Error("ENULLPTR");
         }
+        return (T) objectStorage.get(uuid);
+    }
+
+    private Boolean _delObject(final String uuid) {
+        if (objectStorage.containsKey(uuid)) {
+            objectStorage.remove(uuid);
+            return true;
+        }
+        return false;
+    }
+
+    private ZMQ.Socket _socket(final Integer socType) {
+        return zmqContext.socket(socType);
+    }
+
+    private String _getDeviceIdentifier() {
+        return ("android.os.Build." + ReactNativeUtils.getDeviceName() + " " + ReactNativeUtils.getIPAddress(true));
     }
 
     @ReactMethod
     @SuppressWarnings("unused")
-    public void disconnect(final Callback callback) {
+    public void socketCreate(final Integer socType, final Callback callback) {
         (new ReactTask(callback) {
             @Override
             Object run() throws Exception {
-                Boolean success = ReactNativeZeroMQ.this._disconnect();
-                return this._successResult(success);
+                ZMQ.Socket socket = ReactNativeZeroMQ.this._socket(socType);
+
+                if (socket == null) {
+                    return "";
+                }
+
+                return ReactNativeZeroMQ.this._newObject(socket);
             }
         }).start();
+    }
+
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void socketBind(final String uuid, final String addr, final Callback callback) {
+        (new ReactTask(callback) {
+            @Override
+            Object run() throws Exception {
+                ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
+                socket.bind(addr);
+
+                return this._successResult(true);
+            }
+        }).start();
+    }
+
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void socketConnect(final String uuid, final String addr, final Callback callback) {
+        (new ReactTask(callback) {
+            @Override
+            Object run() throws Exception {
+                ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
+                socket.connect(addr);
+
+                return this._successResult(true);
+            }
+        }).start();
+    }
+
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void socketClose(final String uuid, final Callback callback) {
+        (new ReactTask(callback) {
+            @Override
+            Object run() throws Exception {
+                ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
+                socket.close();
+
+                ReactNativeZeroMQ.this._delObject(uuid);
+                return this._successResult(true);
+            }
+        }).start();
+    }
+
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void destroy(final String uuid, final Callback callback) {
+        (new ReactTask(callback) {
+            @Override
+            Object run() throws Exception {
+                ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
+                socket.close();
+
+                ReactNativeZeroMQ.this._delObject(uuid);
+                return this._successResult(true);
+            }
+        }).start();
+    }
+
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void setIdentity(final String uuid, final String id, final Callback callback) {
+        (new ReactTask(callback) {
+            @Override
+            Object run() throws Exception {
+                ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
+                socket.setIdentity(id.getBytes(ZMQ.CHARSET));
+
+                return this._successResult(true);
+            }
+        }).start();
+    }
+
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void send(final String uuid, final String body, final Integer flag, final Callback callback) {
+        (new ReactTask(callback) {
+            @Override
+            Object run() throws Exception {
+                ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
+                return socket.send(body, flag);
+            }
+        }).startAsync();
+    }
+
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void recv(final String uuid, final Integer flag, final Callback callback) {
+        (new ReactTask(callback) {
+            @Override
+            Object run() throws Exception {
+                ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
+                return socket.recvStr(flag);
+            }
+        }).startAsync();
     }
 
     @ReactMethod

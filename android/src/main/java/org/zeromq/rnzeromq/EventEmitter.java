@@ -21,7 +21,7 @@ public class EventEmitter {
         this.context.addLifecycleEventListener(ReceiverHelper.getInstance(context));
     }
 
-    public void emit(final String eventName, final String message) {
+    void emit(final String eventName, final String message) {
         if (context.hasActiveCatalystInstance() && this.context.hasCurrentActivity()) {
             WritableMap retVal = Arguments.createMap();
             retVal.putString("result", message);
@@ -30,7 +30,7 @@ public class EventEmitter {
         }
     }
 
-    public static void setup(ReactContext reactContext) {
+    static void setup(ReactContext reactContext) {
         if (EventEmitter.INSTANCE == null) {
             EventEmitter.INSTANCE = new EventEmitter(reactContext);
         } else {

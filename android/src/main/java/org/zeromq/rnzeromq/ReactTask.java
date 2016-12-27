@@ -1,15 +1,23 @@
 package org.zeromq.rnzeromq;
 
+import android.os.AsyncTask;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.WritableMap;
 
 
-abstract class ReactTask {
+abstract class ReactTask extends AsyncTask<Object, Void, Object> {
     private Callback _callback = null;
 
     ReactTask(Callback callback) {
         _callback = callback;
+    }
+
+    @Override
+    protected Object doInBackground(Object... params) {
+        this.start();
+        return null;
     }
 
     abstract Object run() throws Exception;
@@ -21,6 +29,10 @@ abstract class ReactTask {
         } catch (Exception e) {
             this._raiseJSException(this._callback, "EINT", e.getMessage());
         }
+    }
+
+    void startAsync() {
+        this.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     Object _successResult(Boolean success) {
