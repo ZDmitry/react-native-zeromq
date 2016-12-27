@@ -53,9 +53,21 @@ Additionally multi dex support could be required.
 
 ##API
 
-`start(Object config)` (Promise) - start ZeroMQ client
+`ZeroMQ.socket(ZeroMQ.SOCKET_TYPE socketType)` (Promise) - creates new ZeroMQ socket of correspond type
 
-`destroy()` (Promise) - destroy redis client instance (optional)
+`ZeroMQ.getDeviceIdentifier()` (Promise) - returns user-friendly device identifier
+
+`socket.bind(String address)` (Promise) - set socket to listen state (acts as a server)
+ 
+`socket.connect(String address)` (Promise) - connect socket to remote server (acts as a client) 
+
+`socket.setIdentity(String identity)` (Promise) - set client identity for ZeroMQ protocol
+
+`socket.send(String body, int flags)` (Promise) - send message. To send multipart message, use `ZMQ_SNDMORE` flag
+
+`socket.recv(int flags)` (Promise) - read incomming message, if available. Use `ZMQ_DONTWAIT` flag to read immediately 
+
+`socket.close(String address)` (Promise) - close connection (and destroy object). Alias: `.destroy()`
 
 
 ##Usage
@@ -68,12 +80,14 @@ Prevent methods from being called multiple times (on Android).
 ```javascript
 import { ZeroMQ } from 'react-native-zeromq';
 
-// ...
-
-ZeroMQ.connect({
-  // ...
-}).then(() => {
-  // ...
+ZeroMQ.socket(ZeroMQ.SOCKET_TYPE.DEALER).then((socket) => {
+  socket.connect("tcp://127.0.0.1:5566").then(() => {
+    socket.send("Hi there!").then(() => {
+      socket.recv().then((msg) => {
+        console.log(msg);
+      });
+    });
+  });
 });
 
 ```

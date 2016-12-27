@@ -77,6 +77,7 @@ export class ZMQSocket {
   }
 
   send(body, flags) {
+    flags = flags || 0;
     return new Promise((resolve, reject) => {
       this._bridge.socketSend(this._uuid, body, flags, answ => {
         if (answ.error) {
@@ -90,6 +91,7 @@ export class ZMQSocket {
   }
 
   recv(flags) {
+    flags = flags || 0;
     return new Promise((resolve, reject) => {
       this._bridge.socketRecv(this._uuid, flags, answ => {
         if (answ.error) {
