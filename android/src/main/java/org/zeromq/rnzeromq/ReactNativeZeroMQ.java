@@ -163,7 +163,7 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
     @ReactMethod
     @SuppressWarnings("unused")
-    public void setIdentity(final String uuid, final String id, final Callback callback) {
+    public void setSocketIdentity(final String uuid, final String id, final Callback callback) {
         (new ReactTask(callback) {
             @Override
             Object run() throws Exception {
@@ -177,7 +177,7 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
     @ReactMethod
     @SuppressWarnings("unused")
-    public void send(final String uuid, final String body, final Integer flag, final Callback callback) {
+    public void socketSend(final String uuid, final String body, final Integer flag, final Callback callback) {
         (new ReactTask(callback) {
             @Override
             Object run() throws Exception {
@@ -189,7 +189,7 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
     @ReactMethod
     @SuppressWarnings("unused")
-    public void recv(final String uuid, final Integer flag, final Callback callback) {
+    public void socketRecv(final String uuid, final Integer flag, final Callback callback) {
         (new ReactTask(callback) {
             @Override
             Object run() throws Exception {

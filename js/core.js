@@ -28,34 +28,7 @@ switch (Platform.OS) {
     break;
 }
 
-
-export class ZeroMQ {
-
-  static start(config) {
-    return new Promise((resolve, reject) => {
-      bridge.start(JSON.stringify(config || '{}'), answ => {
-        if (answ.error) {
-          reject(answ.error);
-          return;
-        }
-        resolve(answ.result);
-      });
-    });
-  }
-
-  static destroy() {
-    return new Promise((resolve, reject) => {
-      bridge.destroy(answ => {
-        if (answ.error) {
-          reject(answ.error);
-          return;
-        }
-        resolve(answ.result);
-      });
-    });
-  }
-
-  static onNotification(callback) {
-    notification_listeners.push(callback);
-  }
+export default {
+  bridge: bridge,
+  notificationListeners: notification_listeners
 }
