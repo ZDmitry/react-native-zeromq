@@ -1,6 +1,6 @@
-import Core from './core';
+import Core from './core'
 import { ZMQSocket } from './socket'
-
+import { ZMQError, ZMQNoAnswerError, ZMQSocketTypeError } from './errors'
 
 export class ZeroMQ {
 
@@ -31,15 +31,15 @@ export class ZeroMQ {
     return new Promise((resolve, reject) => {
       let _validSocTypes = Object.values(ZeroMQ.SOCKET_TYPE);
       if (!~_validSocTypes.indexOf(socType)) {
-        resolve(null);
+        reject(new ZMQSocketTypeError());
         return;
       }
 
       Core.bridge.socketCreate(socType, answ => {
-        answ = answ || {error: new Error("ENOANSW")};
+        answ = answ || {error: new ZMQNoAnswerError()};
 
         if (answ.error) {
-          reject(answ.error);
+          reject(new ZMQError(answ.error));
           return;
         }
 
@@ -56,10 +56,10 @@ export class ZeroMQ {
   static getDeviceIdentifier() {
     return new Promise((resolve, reject) => {
       Core.bridge.getDeviceIdentifier(answ => {
-        answ = answ || {error: new Error("ENOENT")};
+        answ = answ || {error: new ZMQNoAnswerError()};
 
         if (answ.error) {
-          reject(answ.error);
+          reject(new ZMQError(answ.error));
           return;
         }
         resolve(answ.result);
