@@ -7,5 +7,10 @@ export class ZMQError extends BaseClass(Error) {
     this.name    = this.constructor.name;
     this.details = details;
     this.object  = object;
+
+    if (details.code === "ERNINT") {
+      this.details = details.message;
+      this.object  = details.details;
+    }
   }
 }

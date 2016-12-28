@@ -27,7 +27,15 @@ abstract class ReactTask extends AsyncTask<Object, Void, Object> {
             Object result = this.run();
             this._returnJSResult(this._callback, result);
         } catch (Exception e) {
-            this._raiseJSException(this._callback, "EINT", e.getMessage());
+            String      message = e.getMessage();
+            WritableMap details = Arguments.createMap();
+
+            if (e instanceof ReactException) {
+                ReactException re = (ReactException)e;
+                details = re.getDetails();
+            }
+
+            this._raiseJSException(this._callback, "ERNINT", message, details);
         }
     }
 

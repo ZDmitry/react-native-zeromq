@@ -63,9 +63,9 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T _getObject(final String uuid) {
+    private <T> T _getObject(final String uuid) throws Exception {
         if (!objectStorage.containsKey(uuid)) {
-            throw new Error("ENULLPTR");
+            throw new ReactException("ENULLPTR", "No such object with key \"" + uuid + "\"");
         }
         return (T) objectStorage.get(uuid);
     }
