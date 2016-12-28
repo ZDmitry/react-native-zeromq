@@ -36,13 +36,14 @@ export class ZeroMQ {
       }
 
       Core.bridge.socketCreate(socType, answ => {
+        answ = answ || {error: new Error("ENOANSW")};
+
         if (answ.error) {
           reject(answ.error);
           return;
         }
 
-        answ.result = answ.result || '';
-        if (!answ.result.length) {
+        if (!answ.result) {
           resolve(null);
           return;
         }
@@ -55,6 +56,8 @@ export class ZeroMQ {
   static getDeviceIdentifier() {
     return new Promise((resolve, reject) => {
       Core.bridge.getDeviceIdentifier(answ => {
+        answ = answ || {error: new Error("ENOENT")};
+
         if (answ.error) {
           reject(answ.error);
           return;
