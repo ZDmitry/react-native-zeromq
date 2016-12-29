@@ -38,7 +38,10 @@ export class ZeroMQ {
       }
 
       Core.bridge.socketCreate(socType, answ => {
-        answ = answ || {error: new ZMQNoAnswerError()};
+        if (!answ) {
+          reject(new ZMQNoAnswerError());
+          return;
+        }
 
         if (answ.error) {
           reject(new ZMQError(answ.error));
@@ -58,7 +61,10 @@ export class ZeroMQ {
   static getDeviceIdentifier() {
     return new Promise((resolve, reject) => {
       Core.bridge.getDeviceIdentifier(answ => {
-        answ = answ || {error: new ZMQNoAnswerError()};
+        if (!answ) {
+          reject(new ZMQNoAnswerError());
+          return;
+        }
 
         if (answ.error) {
           reject(new ZMQError(answ.error));
