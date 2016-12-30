@@ -12,7 +12,8 @@ export function BaseClass(cls) {
   }
 
   BaseClass.prototype = Object.create(cls.prototype);
-  Object.setPrototypeOf(BaseClass, cls);
+  BaseClass.__proto__ = cls;
+  // Object.setPrototypeOf(BaseClass, cls);
 
   BaseClass.prototype.toString = function () {
     var msg = this.message || '';
