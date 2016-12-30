@@ -116,7 +116,7 @@ class ReactNativeUtils {
         if (model.startsWith(manufacturer)) {
             return _capitalize(model);
         }
-        return (_capitalize(manufacturer) + "-" + _capitalize(model));
+        return (_capitalize(manufacturer) + " " + _capitalize(model));
     }
 
     private static String _capitalize(String str) {

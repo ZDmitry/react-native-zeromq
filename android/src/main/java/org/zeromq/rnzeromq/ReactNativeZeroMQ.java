@@ -1,5 +1,7 @@
 package org.zeromq.rnzeromq;
 
+import android.util.Log;
+
 import java.util.UUID;
 import java.util.HashMap;
 import java.lang.String;
@@ -15,6 +17,8 @@ import org.zeromq.ZMQ;
 
 
 class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
+
+    final String TAG = "ReactNativeZeroMQ";
 
     private Map<String, Object> objectStorage;
     private final ZMQ.Context   zmqContext;
@@ -82,7 +86,9 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
     }
 
     private String _getDeviceIdentifier() {
-        return ("android.os.Build." + ReactNativeUtils.getDeviceName() + " " + ReactNativeUtils.getIPAddress(true));
+        String devFriendlyName = ReactNativeUtils.getDeviceName();
+        devFriendlyName = devFriendlyName.replaceAll("\\s", "_");
+        return ("android.os.Build." + devFriendlyName + " " + ReactNativeUtils.getIPAddress(true));
     }
 
     @ReactMethod
@@ -110,7 +116,6 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
             Object run() throws Exception {
                 ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
                 socket.bind(addr);
-
                 return this._successResult(true);
             }
         }).start();
@@ -188,14 +193,58 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
     @ReactMethod
     @SuppressWarnings("unused")
-    public void socketRecv(final String uuid, final Integer flag, final Callback callback) {
+    public void socketRecv(final String uuid, final Integer flag, final Integer poolInterval, final Callback callback) {
         (new ReactTask(callback) {
             @Override
             Object run() throws Exception {
                 ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
+
+                if (poolInterval > (-1)) {
+                    return ReactNativeZeroMQ.this._poolSocketPooling(socket, flag, poolInterval);
+                }
+
                 return socket.recvStr(flag);
             }
         }).startAsync();
+    }
+
+    private String _poolSocketPooling(ZMQ.Socket socket, final Integer flag, final Integer poolInterval) {
+        StringBuilder strBuffer = new StringBuilder();
+
+        ZMQ.PollItem  items []  = { new ZMQ.PollItem(socket, ZMQ.Poller.POLLIN) };
+        int rc = ZMQ.poll(items, poolInterval);
+
+        if (rc != -1) {
+            Log.d(TAG, "Pooller init ok");
+            if (items[0].isReadable()) {
+                Log.d(TAG, "Has data...");
+
+                do {
+                    String recv = socket.recvStr(flag);
+                    if (recv != null) {
+                        Log.d(TAG, "Recv data: " + recv);
+                        strBuffer.append(recv);
+                        strBuffer.append("\n");
+                    }
+                } while (socket.hasReceiveMore());
+            }
+        } else {
+            Log.d(TAG, "Pooller failed");
+        }
+
+        return strBuffer.toString();
+    }
+
+    @ReactMethod
+    @SuppressWarnings("unused")
+    public void socketHasMore(final String uuid, final Callback callback) {
+        (new ReactTask(callback) {
+            @Override
+            Object run() throws Exception {
+                ZMQ.Socket socket = ReactNativeZeroMQ.this._getObject(uuid);
+                return socket.hasReceiveMore();
+            }
+        }).start();
     }
 
     @ReactMethod
