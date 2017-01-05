@@ -4,6 +4,7 @@ export class ZMQSocket {
 
   _bridge = null;
   _uuid   = "";
+  _addr   = "";
 
   constructor(bridge, uuid) {
     this._bridge = bridge;
@@ -24,9 +25,18 @@ export class ZMQSocket {
         }
 
         this._uuid = "";
+        this._addr = "";
         resolve(answ.result);
       });
     });
+  }
+
+  get address() {
+    return this._addr;
+  }
+
+  get uuid() {
+    return this._uuid;
   }
 
   bind(addr) {
@@ -42,6 +52,7 @@ export class ZMQSocket {
           return;
         }
 
+        this._addr = addr;
         resolve(answ.result);
       });
     });
@@ -60,6 +71,7 @@ export class ZMQSocket {
           return;
         }
 
+        this._addr = addr;
         resolve(answ.result);
       });
     });
@@ -79,6 +91,7 @@ export class ZMQSocket {
         }
 
         this._uuid = "";
+        this._addr = "";
         resolve(answ.result);
       });
     });
