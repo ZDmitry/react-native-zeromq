@@ -10,24 +10,6 @@ export class ZMQSocket {
     this._uuid   = uuid;
   }
 
-  test() {
-    return new Promise((resolve, reject) => {
-      this._bridge.socketTest(answ => {
-        if (!answ) {
-          reject(new ZMQNoAnswerError());
-          return;
-        }
-
-        if (answ.error) {
-          reject(new ZMQError(answ.error));
-          return;
-        }
-
-        resolve(answ.result);
-      });
-    });
-  }
-
   destroy() {
     return new Promise((resolve, reject) => {
       this._bridge.destroy(this._uuid, answ => {
