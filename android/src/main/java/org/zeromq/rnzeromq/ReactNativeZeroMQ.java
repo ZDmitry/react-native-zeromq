@@ -22,7 +22,7 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
     final String TAG = "ReactNativeZeroMQ";
 
     private Map<String, Object> _storage;
-    private final ZMQ.Context   _context;
+    private ZMQ.Context         _context;
 
     ReactNativeZeroMQ(final ReactApplicationContext reactContext) {
         super(reactContext);
@@ -45,7 +45,11 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
             socket.close();
             it.remove();
         }
-        _context.term();
+
+        if (_context != null) {
+            _context.term();
+            _context = null;
+        }
     }
 
     @Override
