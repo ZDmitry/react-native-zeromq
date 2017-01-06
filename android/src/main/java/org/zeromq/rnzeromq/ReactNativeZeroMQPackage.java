@@ -10,10 +10,28 @@ import com.facebook.react.uimanager.ViewManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 
 public class ReactNativeZeroMQPackage implements ReactPackage {
+
+    private List<NativeModule> _modules = new ArrayList<>();
+
+    @Override
+    protected void finalize() throws Throwable {
+        _destroy();
+        super.finalize();
+    }
+
+    private void _destroy() {
+        Iterator it = _modules.iterator();
+        while (it.hasNext()) {
+            ReactNativeZeroMQ zeromq = (ReactNativeZeroMQ)it.next();
+            zeromq._destroy();
+            it.remove();
+        }
+    }
 
     @Override
     public List<Class<? extends JavaScriptModule>> createJSModules() {
@@ -27,10 +45,10 @@ public class ReactNativeZeroMQPackage implements ReactPackage {
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-        List<NativeModule> modules = new ArrayList<>();
+        _destroy();
         EventEmitter.setup(reactContext);
-        modules.add(new ReactNativeZeroMQ(reactContext));
-        return modules;
+        _modules.add(new ReactNativeZeroMQ(reactContext));
+        return _modules;
     }
 
 }

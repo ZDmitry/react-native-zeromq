@@ -2,6 +2,7 @@ package org.zeromq.rnzeromq;
 
 import android.util.Log;
 
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.HashMap;
 import java.lang.String;
@@ -20,13 +21,31 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
     final String TAG = "ReactNativeZeroMQ";
 
-    private Map<String, Object> objectStorage;
-    private final ZMQ.Context   zmqContext;
+    private Map<String, Object> _storage;
+    private final ZMQ.Context   _context;
 
     ReactNativeZeroMQ(final ReactApplicationContext reactContext) {
         super(reactContext);
-        zmqContext    = ZMQ.context(1);
-        objectStorage = new HashMap<>();
+        _context = ZMQ.context(1);
+        _storage = new HashMap<>();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        _destroy();
+        super.finalize();
+    }
+
+    void _destroy() {
+        Iterator it = _storage.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            ZMQ.Socket socket = (ZMQ.Socket)pair.getValue();
+
+            socket.close();
+            it.remove();
+        }
+        _context.term();
     }
 
     @Override
@@ -61,28 +80,28 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
 
     private String _newObject(Object obj) {
         UUID uuid = UUID.randomUUID();
-        objectStorage.put(uuid.toString(), obj);
+        _storage.put(uuid.toString(), obj);
         return uuid.toString();
     }
 
     @SuppressWarnings("unchecked")
     private <T> T _getObject(final String uuid) throws Exception {
-        if (!objectStorage.containsKey(uuid)) {
+        if (!_storage.containsKey(uuid)) {
             throw new ReactException("ENULLPTR", "No such object with key \"" + uuid + "\"");
         }
-        return (T) objectStorage.get(uuid);
+        return (T) _storage.get(uuid);
     }
 
     private Boolean _delObject(final String uuid) {
-        if (objectStorage.containsKey(uuid)) {
-            objectStorage.remove(uuid);
+        if (_storage.containsKey(uuid)) {
+            _storage.remove(uuid);
             return true;
         }
         return false;
     }
 
     private ZMQ.Socket _socket(final Integer socType) {
-        return zmqContext.socket(socType);
+        return _context.socket(socType);
     }
 
     private String _getDeviceIdentifier() {
