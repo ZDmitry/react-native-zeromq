@@ -238,14 +238,10 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
         int rc = ZMQ.poll(items, poolInterval);
 
         if (rc != -1) {
-            Log.d(TAG, "Pooller init ok");
             if (items[0].isReadable()) {
-                Log.d(TAG, "Has data...");
-
                 do {
                     String recv = socket.recvStr(flag);
                     if (recv != null) {
-                        Log.d(TAG, "Recv data: " + recv);
                         strBuffer.append(recv);
                         strBuffer.append("\n");
                     }
