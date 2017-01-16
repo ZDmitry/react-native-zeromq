@@ -46,10 +46,7 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
             it.remove();
         }
 
-        if (_context != null) {
-            _context.term();
-            _context = null;
-        }
+        _closeContext(true);
     }
 
     @Override
@@ -104,7 +101,21 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
         return false;
     }
 
+    private Boolean _closeContext(Boolean forced) {
+        if (_storage.size() == 0 || forced) {
+            if (_context != null) {
+                _context.term();
+                _context = null;
+            }
+            return true;
+        }
+        return false;
+    }
+
     private ZMQ.Socket _socket(final Integer socType) {
+        if (_context == null) {
+            _context = ZMQ.context(1);
+        }
         return _context.socket(socType);
     }
 
@@ -168,6 +179,7 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
                 socket.close();
 
                 ReactNativeZeroMQ.this._delObject(uuid);
+                ReactNativeZeroMQ.this._closeContext(false);
                 return this._successResult(true);
             }
         }).start();
