@@ -23,6 +23,7 @@ export class ZeroMQ {
     },
     OPTS: {
       DONT_WAIT:  Core.bridge.ZMQ_DONTWAIT,
+      NO_BLOCK:   Core.bridge.ZMQ_NOBLOCK,
       SEND_MORE:  Core.bridge.ZMQ_SNDMORE,
     }
   };

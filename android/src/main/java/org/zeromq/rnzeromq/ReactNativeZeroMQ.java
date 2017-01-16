@@ -69,6 +69,7 @@ class ReactNativeZeroMQ extends ReactContextBaseJavaModule {
         constants.put("ZMQ_XSUB", ZMQ.XSUB);
 
         constants.put("ZMQ_DONTWAIT", ZMQ.DONTWAIT);
+        constants.put("ZMQ_NOBLOCK",  ZMQ.NOBLOCK);
         constants.put("ZMQ_SNDMORE",  ZMQ.SNDMORE);
 
         constants.put("ZMQ_DEALER", ZMQ.DEALER);
