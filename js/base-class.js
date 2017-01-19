@@ -3,9 +3,10 @@ export function BaseClass(cls) {
   let stack = '';
 
   function BaseClass() {
-    cls.apply(this, arguments);
+    let _proto = cls.apply(this, arguments);
 
     if (this instanceof Error) {
+      this.message = _proto.message;
       stack = new Error().stack.split('\n');
       stack = '\n' + stack.slice(3, 6).join('\n');
     }
