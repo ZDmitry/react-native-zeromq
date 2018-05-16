@@ -80,7 +80,7 @@ Prevent methods from being called multiple times (on Android).
 ```javascript
 import { ZeroMQ } from 'react-native-zeromq';
 
-ZeroMQ.socket(ZeroMQ.SOCKET_TYPE.DEALER).then((socket) => {
+ZeroMQ.socket(ZeroMQ.SOCKET.TYPE.DEALER).then((socket) => {
   socket.connect("tcp://127.0.0.1:5566").then(() => {
     socket.send("Hi there!").then(() => {
       socket.recv().then((msg) => {
