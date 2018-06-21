@@ -33,7 +33,7 @@ public class ReactNativeZeroMQPackage implements ReactPackage {
         }
     }
 
-    @Override
+    // @Override
     public List<Class<? extends JavaScriptModule>> createJSModules() {
         return Arrays.asList();
     }
