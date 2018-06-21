@@ -31,7 +31,7 @@ dependencies {
 ```
 
 in `MainApplication.java`
-add package to getPacakges()
+add package to getPackages()
 
 ```java
 import org.zeromq.rnzeromq.ReactNativeZeroMQPackage;
@@ -51,9 +51,9 @@ protected List<ReactPackage> getPackages() {
 Additionally multi dex support could be required.
 
 
-##API
+## API
 
-`ZeroMQ.socket(ZeroMQ.SOCKET_TYPE socketType)` (Promise) - creates new ZeroMQ socket of correspond type
+`ZeroMQ.socket(ZeroMQ.SOCKET_TYPE socketType)` (Promise) - creates new ZeroMQ socket of corresponding type
 
 `ZeroMQ.getDeviceIdentifier()` (Promise) - returns user-friendly device identifier
 
@@ -65,17 +65,17 @@ Additionally multi dex support could be required.
 
 `socket.send(String body, int flags)` (Promise) - send message. To send multipart message, use `ZMQ_SNDMORE` flag
 
-`socket.recv(int flags)` (Promise) - read incomming message, if available. Use `ZMQ_DONTWAIT` flag to read immediately 
+`socket.recv(int flags)` (Promise) - read incoming message, if available. Use `ZMQ_DONTWAIT` flag to read immediately 
 
 `socket.close(String address)` (Promise) - close connection (and destroy object). Alias: `.destroy()`
 
 
-##Usage
+## Usage
 
 Methods should be called from React Native as any other promise.
 Prevent methods from being called multiple times (on Android).
 
-###Example
+### Example
 
 ```javascript
 import { ZeroMQ } from 'react-native-zeromq';
